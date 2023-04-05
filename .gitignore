@@ -1,5 +1,5 @@
 # project file
-.Rproj
+*.Rproj
 
 # History files
 .Rhistory
