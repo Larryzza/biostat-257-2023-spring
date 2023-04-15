@@ -6,7 +6,8 @@
 # History files
 .Rhistory
 .Rapp.history
-
+*_files
+/figure
 # Session Data files
 .RData
 
