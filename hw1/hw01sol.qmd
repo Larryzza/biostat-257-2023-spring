@@ -180,10 +180,11 @@ We can see that although we didn’t specify a type annotation. LLVM bitcodes we
 @code_llvm g_fastmath(1.1)
 ```
 
-As we can tell from the llvm code, `fastmath` deals with the Float types in a more efficient way (2 steps) than the original method (20 steps). But we need to be careful when using this tool, since in document it states that this method
+As we can tell from the llvm code, `fastmath` deals with the Float types in a more efficient way (2 steps) than the original method (20 steps). From the document we see that `fastmath` method
 
 > Execute a transformed version of the expression, which calls functions that may violate strict IEEE semantics. This allows the fastest possible operation, but results are undefined – be careful when doing this, as it may change numerical results.
 
+Then we know that the method has shorter bitcodes because it executed a transformed version of the expression. In addition, We need to be careful when using this tool, since it violate strict IEEE semantics.
 
 ## Q4
 
@@ -498,8 +499,8 @@ Then, by induction, we know that all orthogonal upper (lower) triangular matrix 
 
 ```{julia}
 Random.seed!(257)
-Q1, R1 = qr(randn(3,3))
-Q2, R2 = qr(randn(3,3))
+Q1, R1 = qr(randn(3, 3))
+Q2, R2 = qr(randn(3, 3))
 round.(transpose(Q1 * Q2) * (Q1 * Q2); digits = 4)
 ```
 
@@ -690,5 +691,5 @@ benchmark_result["vectorization"] = median(bmvec.times)
 sort(collect(benchmark_result), by = x -> x[2])
 ```
 
-As we can tell from the table, `ij-looping (turbo)` performed the best. When equipped with `turbo` tool, both `ij-looping` and `ji-looping` performs better than `comprehension` and `vectorization`. However, without `turbo` tool, `ij-looping` is the slower than `comprehension` and `vectorization`. Here we can also see that the multithreads `tturbo` did not improve the speed. The possible reason is that the number of the loop did is not large enough and it also took time to run the multithreads function.
+As we can tell from the table, `ij-looping (turbo)` performed the best. When equipped with `turbo` tool, both `ij-looping` and `ji-looping` performs better than `comprehension` and `vectorization`. However, without `turbo` tool, `ij-looping` is the slower than `comprehension` and `vectorization`. Here we can also see that, compared to the `turbo`, the multithreads version `tturbo` did not improve the speed. The possible reason is that the number of the loop is not large enough and it also took time to start the multithreads function.
 

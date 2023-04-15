@@ -3224,9 +3224,9 @@ Platform Info:
   WORD_SIZE: 64
   LIBM: libopenlibm
   LLVM: libLLVM-13.0.1 (ORCJIT, znver3)
-  Threads: 8 on 16 virtual cores
+  Threads: 16 on 16 virtual cores
 Environment:
-  JULIA_NUM_THREADS = 8</code></pre>
+  JULIA_NUM_THREADS = 16</code></pre>
 </div>
 </div>
 <div class="cell" data-execution_count="2">
@@ -3530,10 +3530,11 @@ top:
 }</code></pre>
 </div>
 </div>
-<p>As we can tell from the llvm code, <code>fastmath</code> deals with the Float types in a more efficient way (2 steps) than the original method (20 steps). But we need to be careful when using this tool, since in document it states that this method</p>
+<p>As we can tell from the llvm code, <code>fastmath</code> deals with the Float types in a more efficient way (2 steps) than the original method (20 steps). From the document we see that <code>fastmath</code> method</p>
 <blockquote class="blockquote">
 <p>Execute a transformed version of the expression, which calls functions that may violate strict IEEE semantics. This allows the fastest possible operation, but results are undefined – be careful when doing this, as it may change numerical results.</p>
 </blockquote>
+<p>Then we know that the method has shorter bitcodes because it executed a transformed version of the expression. In addition, We need to be careful when using this tool, since it violate strict IEEE semantics.</p>
 </section>
 </section>
 <section id="q4" class="level2" data-number="4">
@@ -3849,8 +3850,8 @@ D= \pm 1
 <h3 data-number="6.6" class="anchored" data-anchor-id="section-21"><span class="header-section-number">6.6</span> 6.</h3>
 <div class="cell" data-execution_count="21">
 <div class="sourceCode cell-code" id="cb43"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="bu">Random</span>.<span class="fu">seed!</span>(<span class="fl">257</span>)</span>
-<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>Q1, R1 <span class="op">=</span> <span class="fu">qr</span>(<span class="fu">randn</span>(<span class="fl">3</span>,<span class="fl">3</span>))</span>
-<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>Q2, R2 <span class="op">=</span> <span class="fu">qr</span>(<span class="fu">randn</span>(<span class="fl">3</span>,<span class="fl">3</span>))</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>Q1, R1 <span class="op">=</span> <span class="fu">qr</span>(<span class="fu">randn</span>(<span class="fl">3</span>, <span class="fl">3</span>))</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>Q2, R2 <span class="op">=</span> <span class="fu">qr</span>(<span class="fu">randn</span>(<span class="fl">3</span>, <span class="fl">3</span>))</span>
 <span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>.(<span class="fu">transpose</span>(Q1 <span class="op">*</span> Q2) <span class="op">*</span> (Q1 <span class="op">*</span> Q2); digits <span class="op">=</span> <span class="fl">4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="22">
 <pre><code>3×3 Matrix{Float64}:
@@ -4059,13 +4060,13 @@ B^{&#39;} B=I
 <span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>bmij <span class="op">=</span> <span class="pp">@benchmark</span> <span class="fu">hij</span>(<span class="fl">5000</span>, <span class="op">$</span>H)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="32">
 <div class="ansi-escaped-output">
-<pre>BenchmarkTools.Trial: 82 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">58.542 ms</span> … <span class="ansi-magenta-fg">66.832 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">60.344 ms              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">60.975 ms</span> ± <span class="ansi-green-fg"> 1.779 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
-    ▂  █ ▅ ▂▂ ▅█<span class="ansi-blue-fg">█</span>  ▂ <span class="ansi-green-fg">▂</span>     █   ▂   ▂▂                          
-  █▅██▅█████████<span class="ansi-blue-fg">█</span>▁▁█▁<span class="ansi-green-fg">█</span>█▁█▁▁█▅▅▅█▅▁███▅▁▁▁▁▅▁▁▅▅▁▁▁▅▁▅▁▁▁▁▁▁▁▅ ▁
-  58.5 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>        66.1 ms <span class="ansi-bold">&lt;</span>
+<pre>BenchmarkTools.Trial: 87 samples with 1 evaluation.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">56.002 ms</span> … <span class="ansi-magenta-fg"> 60.080 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">57.517 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">57.532 ms</span> ± <span class="ansi-green-fg">787.382 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
+            █▁ ▁ ▃▃▃ ▃  ▁<span class="ansi-blue-fg">▆</span>█ ▁▁ ▃▃  ▆                            
+  ▄▁▁▁▄▁▄▇▄▄██▄█▇███▄█▁▁█<span class="ansi-blue-fg">█</span>█▇██▁██▄▄█▄▄▄▄▁▁▁▁▁▄▄▁▁▄▁▁▁▄▄▁▁▁▁▁▁▄ ▁
+  56 ms<span class="ansi-bright-black-fg">           Histogram: frequency by time</span>         59.9 ms <span class="ansi-bold">&lt;</span>
  Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">0 bytes</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">0</span>.</pre>
 </div>
 </div>
@@ -4075,13 +4076,13 @@ B^{&#39;} B=I
 <span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>bmji <span class="op">=</span> <span class="pp">@benchmark</span> <span class="fu">hji</span>(<span class="fl">5000</span>, <span class="op">$</span>H)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="33">
 <div class="ansi-escaped-output">
-<pre>BenchmarkTools.Trial: 337 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">13.294 ms</span> … <span class="ansi-magenta-fg"> 22.134 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">14.644 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">14.801 ms</span> ± <span class="ansi-green-fg">863.347 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
-            ▂▃▂▂▃▂█<span class="ansi-blue-fg">▆</span>▄▂<span class="ansi-green-fg"> </span>                                         
-  ▄▁▂▂▃▂▄▆▆▆███████<span class="ansi-blue-fg">█</span>██<span class="ansi-green-fg">▇</span>▇█▆▇█▂▄▅▆▄▁▄▃▄▂▂▄▁▂▂▁▂▂▁▁▁▂▂▄▁▁▁▂▁▁▁▂▁▂ ▄
-  13.3 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>         17.9 ms <span class="ansi-bold">&lt;</span>
+<pre>BenchmarkTools.Trial: 372 samples with 1 evaluation.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">12.182 ms</span> … <span class="ansi-magenta-fg"> 17.086 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">13.350 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">13.431 ms</span> ± <span class="ansi-green-fg">567.731 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
+               ▁ ▃▅▃▅▃▁ <span class="ansi-blue-fg">▁</span>▅<span class="ansi-green-fg">█</span>                                     
+  ▂▁▁▁▁▁▃▃▃▂▇▅▅█████████<span class="ansi-blue-fg">█</span>█<span class="ansi-green-fg">█</span>▇▇▇▆█▅▄▅▃▃▃▅▅▃▃▃▃▃▂▃▂▃▂▂▁▁▁▂▃▂▂▁▁▁▃ ▃
+  12.2 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>         15.4 ms <span class="ansi-bold">&lt;</span>
  Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">0 bytes</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">0</span>.</pre>
 </div>
 </div>
@@ -4091,13 +4092,13 @@ B^{&#39;} B=I
 <span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>bmijt <span class="op">=</span> <span class="pp">@benchmark</span> <span class="fu">hijt</span>(<span class="fl">5000</span>, <span class="op">$</span>H)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="34">
 <div class="ansi-escaped-output">
-<pre>BenchmarkTools.Trial: 366 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">11.741 ms</span> … <span class="ansi-magenta-fg">17.733 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">13.403 ms              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">13.633 ms</span> ± <span class="ansi-green-fg"> 1.116 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
-        ▁ ▁▅ ▁▇▃▆▅█▆▁▂<span class="ansi-blue-fg">▃</span> <span class="ansi-green-fg"> </span>▆▁ ▃▅▁                                
-  ▄▄▇▆▄▅█▅████████████<span class="ansi-blue-fg">█</span>▇<span class="ansi-green-fg">▆</span>███████▅▇▅▆▇▆▄▄▄▆▄▄▁▆▄▄▅▁▄▄▁▄▄▄▁▄▄▁▃ ▄
-  11.7 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>        16.7 ms <span class="ansi-bold">&lt;</span>
+<pre>BenchmarkTools.Trial: 380 samples with 1 evaluation.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">11.590 ms</span> … <span class="ansi-magenta-fg">25.276 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">12.808 ms              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">13.136 ms</span> ± <span class="ansi-green-fg"> 1.484 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
+    ▄▄▄▆▆█▅▅<span class="ansi-blue-fg">█</span>▅<span class="ansi-green-fg">▆</span>                                                
+  ▇█████████<span class="ansi-blue-fg">█</span>█<span class="ansi-green-fg">█</span>▇▆█▆▆█▄▄▃▃▄▃▄▂▄▄▂▂▂▂▂▁▃▁▂▁▂▁▁▂▁▁▁▁▂▁▁▂▂▁▁▁▁▁▂▃ ▄
+  11.6 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>        19.1 ms <span class="ansi-bold">&lt;</span>
  Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">0 bytes</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">0</span>.</pre>
 </div>
 </div>
@@ -4107,13 +4108,13 @@ B^{&#39;} B=I
 <span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>bmjit <span class="op">=</span> <span class="pp">@benchmark</span> <span class="fu">hjit</span>(<span class="fl">5000</span>, <span class="op">$</span>H)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="35">
 <div class="ansi-escaped-output">
-<pre>BenchmarkTools.Trial: 384 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">10.967 ms</span> … <span class="ansi-magenta-fg">21.919 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">12.694 ms              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">13.014 ms</span> ± <span class="ansi-green-fg"> 1.172 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
-           ▄ ▄▄▆▄▇█▃▃<span class="ansi-blue-fg">▂</span>▂ <span class="ansi-green-fg">▂</span> ▂     ▁                              
-  ▃▁▁▁▁▃▄▆██▆████████<span class="ansi-blue-fg">█</span>██<span class="ansi-green-fg">█</span>▅██▆▆▅██▃▃▄▆▄▇▃▅▄▃▃▃▃▄▄▁▃▁▃▃▄▃▃▃▃▃▁▃ ▄
-  11 ms<span class="ansi-bright-black-fg">           Histogram: frequency by time</span>        16.4 ms <span class="ansi-bold">&lt;</span>
+<pre>BenchmarkTools.Trial: 354 samples with 1 evaluation.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">11.829 ms</span> … <span class="ansi-magenta-fg">22.853 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">13.340 ms              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">14.109 ms</span> ± <span class="ansi-green-fg"> 2.118 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
+     ▅▄█▆▄▆▂<span class="ansi-blue-fg">▄</span>▄▂  <span class="ansi-green-fg"> </span>                                             
+  ▆▅████████<span class="ansi-blue-fg">█</span>██▄▆<span class="ansi-green-fg">▅</span>▅▄▄▃▆▄▄▄▃▃▄▄▂▃▄▂▄▃▄▄▃▂▂▁▄▃▃▄▃▃▄▂▂▁▂▂▂▁▃▂▁▂▂ ▄
+  11.8 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>        20.8 ms <span class="ansi-bold">&lt;</span>
  Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">0 bytes</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">0</span>.</pre>
 </div>
 </div>
@@ -4123,13 +4124,13 @@ B^{&#39;} B=I
 <span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>bmijtt <span class="op">=</span> <span class="pp">@benchmark</span> <span class="fu">hijtt</span>(<span class="fl">5000</span>, <span class="op">$</span>H)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="36">
 <div class="ansi-escaped-output">
-<pre>BenchmarkTools.Trial: 253 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">16.876 ms</span> … <span class="ansi-magenta-fg">24.315 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">19.530 ms              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">19.754 ms</span> ± <span class="ansi-green-fg"> 1.079 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
-                 ▂▄▇██▆▅▄<span class="ansi-blue-fg">▇</span> <span class="ansi-green-fg">▁</span>▁▁▄▅ ▁▁ ▁                          
-  ▃▁▁▁▁▁▁▁▁▁▄▇▇█▆████████<span class="ansi-blue-fg">█</span>█<span class="ansi-green-fg">█</span>████▅██▄███▅▆▆▄▄▃▄▄▁▁▁▃▁▁▁▁▁▁▁▁▁▃ ▄
-  16.9 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>        23.6 ms <span class="ansi-bold">&lt;</span>
+<pre>BenchmarkTools.Trial: 260 samples with 1 evaluation.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">17.334 ms</span> … <span class="ansi-magenta-fg"> 23.459 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">19.070 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">19.247 ms</span> ± <span class="ansi-green-fg">842.622 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
+               ▃ ▁▃▆▃▅<span class="ansi-blue-fg">█</span>▃<span class="ansi-green-fg"> </span>▃                                      
+  ▃▁▁▁▁▁▅▁▃▅▅▅▇███████<span class="ansi-blue-fg">█</span>█<span class="ansi-green-fg">▇</span>██▇▅▇▅▇▅▅▄▆▄▃▃▃▄▄▁▃▁▃▃▃▁▃▁▁▁▁▁▃▁▁▁▁▁▃ ▃
+  17.3 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>         22.5 ms <span class="ansi-bold">&lt;</span>
  Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">0 bytes</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">0</span>.</pre>
 </div>
 </div>
@@ -4139,13 +4140,13 @@ B^{&#39;} B=I
 <span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>bmjitt <span class="op">=</span> <span class="pp">@benchmark</span> <span class="fu">hjitt</span>(<span class="fl">5000</span>, <span class="op">$</span>H)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="37">
 <div class="ansi-escaped-output">
-<pre>BenchmarkTools.Trial: 256 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">17.518 ms</span> … <span class="ansi-magenta-fg"> 23.487 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">19.478 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">19.545 ms</span> ± <span class="ansi-green-fg">824.801 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
-                ▁▁ ▃▄▅ ▁▁▅▁▃ <span class="ansi-blue-fg">█</span><span class="ansi-green-fg"> </span>▄▁▃ ▇▃▁                          
-  ▃▁▁▁▁▁▁▁▄▃▄▃▆███▆███▇██████<span class="ansi-blue-fg">█</span><span class="ansi-green-fg">█</span>███████▆▅▇▇▄▅▃▁▁▄▅▄▅▄▁▁▃▃▄▁▃▁▃▃ ▄
-  17.5 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>         21.8 ms <span class="ansi-bold">&lt;</span>
+<pre>BenchmarkTools.Trial: 253 samples with 1 evaluation.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">17.696 ms</span> … <span class="ansi-magenta-fg">25.301 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">19.569 ms              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">19.715 ms</span> ± <span class="ansi-green-fg"> 1.026 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
+          ▁ ▁▃ ▄▆▆▆▃▆█▇▁ <span class="ansi-blue-fg">▂</span>▄<span class="ansi-green-fg">▁</span>▃▃▃▃  ▄   ▃                        
+  ▃▁▁▁▆▃▁▄█▄██▇██████████<span class="ansi-blue-fg">█</span>█<span class="ansi-green-fg">█</span>████▇██▆▆▇██▄▇▄▇▆▁▁▃▆▄▆▃▄▁▁▃▁▁▃▃▃ ▄
+  17.7 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>        22.4 ms <span class="ansi-bold">&lt;</span>
  Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">0 bytes</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">0</span>.</pre>
 </div>
 </div>
@@ -4156,12 +4157,12 @@ B^{&#39;} B=I
 <div class="cell-output cell-output-display" data-execution_count="38">
 <div class="ansi-escaped-output">
 <pre>BenchmarkTools.Trial: 115 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">35.025 ms</span> … <span class="ansi-magenta-fg">64.025 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span> 0.00% … 34.76%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">36.386 ms              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span> 0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">43.723 ms</span> ± <span class="ansi-green-fg">10.979 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>14.89% ± 15.70%
-   █▇<span class="ansi-blue-fg"> </span>              <span class="ansi-green-fg"> </span>                                          
-  ▇██<span class="ansi-blue-fg">▇</span>▆▃▁▁▁▁▁▁▁▁▁▁▁▁<span class="ansi-green-fg">▁</span>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▁▁▁▁▁▁▁▁▁▁▁▁▄▅█▆▄▃▃▃▃▁▃ ▃
-  35 ms<span class="ansi-bright-black-fg">           Histogram: frequency by time</span>        62.9 ms <span class="ansi-bold">&lt;</span>
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">35.294 ms</span> … <span class="ansi-magenta-fg">62.839 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span> 0.00% … 32.18%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">36.505 ms              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span> 0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">43.958 ms</span> ± <span class="ansi-green-fg">10.892 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>14.59% ± 15.43%
+   █▂<span class="ansi-blue-fg"> </span>                <span class="ansi-green-fg"> </span>                                        
+  ▅██<span class="ansi-blue-fg">▅</span>▄▄▁▃▁▁▁▂▁▁▁▁▁▁▁▁<span class="ansi-green-fg">▁</span>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▂▅▅▆▄▂▃▃ ▂
+  35.3 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>        61.4 ms <span class="ansi-bold">&lt;</span>
  Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">190.73 MiB</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">2</span>.</pre>
 </div>
 </div>
@@ -4171,13 +4172,13 @@ B^{&#39;} B=I
 <span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a>bmvec <span class="op">=</span> <span class="pp">@benchmark</span> <span class="fu">hvec</span>(<span class="fl">1</span><span class="op">:</span><span class="fl">5000</span>, <span class="op">$</span>H)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="39">
 <div class="ansi-escaped-output">
-<pre>BenchmarkTools.Trial: 148 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">24.871 ms</span> … <span class="ansi-magenta-fg">52.698 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span> 0.00% … 29.43%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">26.569 ms              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span> 0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">34.082 ms</span> ± <span class="ansi-green-fg">11.418 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>18.98% ± 18.37%
-  ▄█▄▃<span class="ansi-blue-fg"> </span>               <span class="ansi-green-fg"> </span>                                        
-  ████<span class="ansi-blue-fg">▆</span>▅▄▄▁▁▁▁▁▁▁▁▁▁▁▁<span class="ansi-green-fg">▁</span>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▁▁▁▁▁▁▁▁▄█▇▆▅▄▁▅ ▃
-  24.9 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>        52.5 ms <span class="ansi-bold">&lt;</span>
+<pre>BenchmarkTools.Trial: 142 samples with 1 evaluation.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">25.593 ms</span> … <span class="ansi-magenta-fg">56.352 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span> 0.00% … 37.82%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">27.881 ms              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span> 0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">35.384 ms</span> ± <span class="ansi-green-fg">11.443 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>18.22% ± 17.86%
+    █ <span class="ansi-blue-fg">▁</span>              <span class="ansi-green-fg"> </span>                                         
+  ████<span class="ansi-blue-fg">█</span>▄▄▄▂▂▁▁▁▁▂▁▁▁▁<span class="ansi-green-fg">▁</span>▁▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▂▁▁▁▂▁▁▁▁▁▁▄▆█▆▄▂▃▂▄▁▁▃ ▂
+  25.6 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>        55.8 ms <span class="ansi-bold">&lt;</span>
  Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">190.73 MiB</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">2</span>.</pre>
 </div>
 </div>
@@ -4196,17 +4197,17 @@ B^{&#39;} B=I
 <span id="cb71-9"><a href="#cb71-9" aria-hidden="true" tabindex="-1"></a><span class="fu">sort</span>(<span class="fu">collect</span>(benchmark_result), by <span class="op">=</span> x <span class="op">-&gt;</span> x[<span class="fl">2</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="40">
 <pre><code>8-element Vector{Pair{Any, Any}}:
-  &quot;ji-looping (turbo)&quot; =&gt; 1.269415e7
-  &quot;ij-looping (turbo)&quot; =&gt; 1.340295e7
-          &quot;ji-looping&quot; =&gt; 1.46437e7
- &quot;ji-looping (tturbo)&quot; =&gt; 1.947835e7
- &quot;ij-looping (tturbo)&quot; =&gt; 1.95302e7
-       &quot;vectorization&quot; =&gt; 2.65685e7
-       &quot;comprehension&quot; =&gt; 3.63857e7
-          &quot;ij-looping&quot; =&gt; 6.034355e7</code></pre>
+  &quot;ij-looping (turbo)&quot; =&gt; 1.2808e7
+  &quot;ji-looping (turbo)&quot; =&gt; 1.33403e7
+          &quot;ji-looping&quot; =&gt; 1.335025e7
+ &quot;ij-looping (tturbo)&quot; =&gt; 1.907025e7
+ &quot;ji-looping (tturbo)&quot; =&gt; 1.95691e7
+       &quot;vectorization&quot; =&gt; 2.78805e7
+       &quot;comprehension&quot; =&gt; 3.65049e7
+          &quot;ij-looping&quot; =&gt; 5.75173e7</code></pre>
 </div>
 </div>
-<p>As we can tell from the table, <code>ij-looping (turbo)</code> performed the best. When equipped with <code>turbo</code> tool, both <code>ij-looping</code> and <code>ji-looping</code> performs better than <code>comprehension</code> and <code>vectorization</code>. However, without <code>turbo</code> tool, <code>ij-looping</code> is the slower than <code>comprehension</code> and <code>vectorization</code>. Here we can also see that the multithreads <code>tturbo</code> did not improve the speed too much.</p>
+<p>As we can tell from the table, <code>ij-looping (turbo)</code> performed the best. When equipped with <code>turbo</code> tool, both <code>ij-looping</code> and <code>ji-looping</code> performs better than <code>comprehension</code> and <code>vectorization</code>. However, without <code>turbo</code> tool, <code>ij-looping</code> is the slower than <code>comprehension</code> and <code>vectorization</code>. Here we can also see that, compared to the <code>turbo</code>, the multithreads version <code>tturbo</code> did not improve the speed. The possible reason is that the number of the loop is not large enough and it also took time to start the multithreads function.</p>
 </section>
 </section>
 </section>
