@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Zian Zhuang and UID:405444165">
-<meta name="dcterms.date" content="2023-04-26">
+<meta name="dcterms.date" content="2023-04-27">
 
 <title>Biostat/Biomath M257 Homework 2</title>
 <style>
@@ -3168,7 +3168,7 @@ return!"\t\n\x0B\f\r                　\u2028\u2029
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 26, 2023</p>
+      <p class="date">April 27, 2023</p>
     </div>
   </div>
   
@@ -3616,7 +3616,7 @@ Toolchain:
 <p>Here we revised function a little bit so that it can run smoothly in GPU:</p>
 <ol type="1">
 <li><p>avoid using <code>BLAS.symm!</code> since it is not recogonized.</p></li>
-<li><p>avoid using <code>for loop</code> within for <code>loop since</code> since it is somehow very slow.</p></li>
+<li><p>avoid using some <code>for loop</code> since they are somehow very slow.</p></li>
 </ol>
 <div class="cell" data-execution_count="13">
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">nnmf_test</span>(</span>
