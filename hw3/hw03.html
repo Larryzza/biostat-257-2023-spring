@@ -3277,32 +3277,60 @@ f(\mathbf{y}_i|\boldsymbol{\beta},\boldsymbol{\Sigma},\sigma^2) = \frac{1}{(2\pi
 <p>Write a function, with interface</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">logl!</span>(obs, β, L, σ²)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>that evaluates the log-likelihood of the <span class="math inline">\(i\)</span>-th datum. Here <code>L</code> is the lower triangular Cholesky factor from the Cholesky decomposition <code>Σ=LL&#39;</code>. Make your code efficient in the <span class="math inline">\(n_i \gg q\)</span> case. Think the intensive longitudinal measurement setting.</p>
-<div class="cell" data-tags="[]" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">logl!</span>(</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>        obs <span class="op">::</span><span class="dt"> LmmObs{T}</span>, </span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>        β   <span class="op">::</span><span class="dt"> Vector{T}</span>, </span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>        L   <span class="op">::</span><span class="dt"> Matrix{T}</span>,  </span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>        σ²  <span class="op">::</span><span class="dt"> T</span>) <span class="kw">where</span> T <span class="op">&lt;:</span><span class="dt"> AbstractFloat</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="fu">size</span>(obs.X, <span class="fl">1</span>)      </span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    L <span class="op">.=</span> <span class="fu">LowerTriangular</span>(L)</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    obs.storage_qq <span class="op">.=</span> obs.ztz</span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    BLAS.<span class="fu">syrk!</span>(<span class="ch">&#39;U&#39;</span>, <span class="ch">&#39;T&#39;</span>, <span class="fl">1.0</span>, L, <span class="fl">1</span><span class="op">/</span>σ², obs.storage_qq)</span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    obs.storage_qq <span class="op">.=</span> <span class="fu">cholesky!</span>(<span class="fu">Symmetric</span>(obs.storage_qq)).L</span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    obs.storage_q <span class="op">.=</span> obs.zty</span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    BLAS.<span class="fu">gemv!</span>(<span class="ch">&#39;N&#39;</span>, <span class="op">-</span><span class="fl">1.0</span>, obs.ztx, β, <span class="fl">1.0</span>, obs.storage_q)</span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    BLAS.<span class="fu">trsv!</span>(<span class="ch">&#39;L&#39;</span>, <span class="ch">&#39;N&#39;</span>, <span class="ch">&#39;N&#39;</span>, obs.storage_qq, obs.storage_q)</span>
-<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    BLAS.<span class="fu">gemv!</span>(<span class="ch">&#39;N&#39;</span>, <span class="fl">1.0</span>, obs.xtx, β, <span class="fl">0.0</span>, obs.storage_p)</span>
-<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="op">-</span> (n<span class="op">//</span><span class="fl">2</span>) <span class="op">*</span> <span class="fu">log</span>(<span class="fl">2</span>π <span class="op">*</span> σ²) <span class="op">-</span> <span class="fu">logdet</span>(<span class="fu">Diagonal</span>(obs.storage_qq)) <span class="op">+</span> <span class="fu">logdet</span>(<span class="fu">Diagonal</span>(L)) <span class="op">-</span> </span>
-<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>        (<span class="fl">1</span><span class="op">//</span><span class="fl">2</span>) <span class="op">*</span> (<span class="fl">1</span> <span class="op">/</span> σ²) <span class="op">*</span> (obs.yty <span class="op">-</span> <span class="fl">2</span> <span class="op">*</span> <span class="fu">dot</span>(obs.xty, β) <span class="op">+</span> <span class="fu">dot</span>(β, obs.storage_p)) <span class="op">+</span></span>
-<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>        (<span class="fl">1</span><span class="op">//</span><span class="fl">2</span>) <span class="op">*</span> ((<span class="fl">1</span> <span class="op">/</span> σ²) <span class="op">^</span> <span class="fl">2</span>) <span class="op">*</span> <span class="fu">dot</span>(obs.storage_q, obs.storage_q)</span>
-<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>    n</span>
-<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>?BLAS.trmm!</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="5">
+<pre><code>trmm!(side, ul, tA, dA, alpha, A, B)</code></pre>
+<p>Update <code>B</code> as <code>alpha*A*B</code> or one of the other three variants determined by <a href="@ref%20stdlib-blas-side"><code>side</code></a> and <a href="@ref%20stdlib-blas-trans"><code>tA</code></a>. Only the <a href="@ref%20stdlib-blas-uplo"><code>ul</code></a> triangle of <code>A</code> is used. <a href="@ref%20stdlib-blas-diag"><code>dA</code></a> determines if the diagonal values are read or are assumed to be all ones. Returns the updated <code>B</code>.</p>
+</div>
+</div>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>?BLAS.syrk!</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<pre><code>syrk!(uplo, trans, alpha, A, beta, C)</code></pre>
+<p>Rank-k update of the symmetric matrix <code>C</code> as <code>alpha*A*transpose(A) + beta*C</code> or <code>alpha*transpose(A)*A + beta*C</code> according to <a href="@ref%20stdlib-blas-trans"><code>trans</code></a>. Only the <a href="@ref%20stdlib-blas-uplo"><code>uplo</code></a> triangle of <code>C</code> is used. Returns <code>C</code>.</p>
+</div>
+</div>
+<div class="cell" data-tags="[]" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">logl!</span>(</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>        obs <span class="op">::</span><span class="dt"> LmmObs{T}</span>, </span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>        β   <span class="op">::</span><span class="dt"> Vector{T}</span>, </span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>        <span class="co">#L   :: LowerTriangular{T, Matrix{T}}, </span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>        L   <span class="op">::</span><span class="dt"> Matrix{T}</span>, </span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>        σ²  <span class="op">::</span><span class="dt"> T</span>) <span class="kw">where</span> T <span class="op">&lt;:</span><span class="dt"> AbstractFloat</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    n, p, q <span class="op">=</span> <span class="fu">size</span>(obs.X, <span class="fl">1</span>), <span class="fl">0.0</span>, <span class="fu">size</span>(obs.Z, <span class="fl">2</span>)      </span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    obs.storage_qq <span class="op">.=</span> obs.ztz</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    BLAS.<span class="fu">syrk!</span>(<span class="ch">&#39;U&#39;</span>, <span class="ch">&#39;T&#39;</span>, <span class="fl">1.0</span>, L, <span class="fl">1</span> <span class="op">/</span> σ², obs.storage_qq)</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    obs.storage_qq <span class="op">.=</span> <span class="fu">Symmetric</span>(obs.storage_qq)</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    LAPACK.<span class="fu">potrf!</span>(<span class="ch">&#39;L&#39;</span>, obs.storage_qq)</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    obs.storage_qq <span class="op">.=</span> <span class="fu">LowerTriangular</span>(obs.storage_qq)</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    obs.storage_q <span class="op">.=</span> obs.zty</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>    BLAS.<span class="fu">gemv!</span>(<span class="ch">&#39;N&#39;</span>, <span class="op">-</span><span class="fl">1.0</span>, obs.ztx, β, <span class="fl">1.0</span>, obs.storage_q)</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    BLAS.<span class="fu">trsv!</span>(<span class="ch">&#39;L&#39;</span>, <span class="ch">&#39;N&#39;</span>, <span class="ch">&#39;N&#39;</span>, obs.storage_qq, obs.storage_q)</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>    BLAS.<span class="fu">gemv!</span>(<span class="ch">&#39;N&#39;</span>, <span class="fl">1.0</span>, obs.xtx, β, <span class="fl">0.0</span>, obs.storage_p)</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>q</span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>        p <span class="op">-=</span> <span class="fu">log</span>(obs.storage_qq[i, i])</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>        p <span class="op">+=</span> <span class="fu">log</span>(L[i, i])</span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="op">-</span> (n<span class="op">//</span><span class="fl">2</span>) <span class="op">*</span> <span class="fu">log</span>(<span class="fl">2</span>π <span class="op">*</span> σ²) <span class="op">+</span> p <span class="op">-</span> </span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>        (<span class="fl">1</span><span class="op">//</span><span class="fl">2</span>) <span class="op">*</span> (<span class="fl">1</span> <span class="op">/</span> σ²) <span class="op">*</span> (obs.yty <span class="op">-</span> <span class="fl">2</span> <span class="op">*</span> <span class="fu">dot</span>(obs.xty, β) <span class="op">+</span> <span class="fu">dot</span>(β, obs.storage_p)) <span class="op">+</span></span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>        (<span class="fl">1</span><span class="op">//</span><span class="fl">2</span>) <span class="op">*</span> ((<span class="fl">1</span> <span class="op">/</span> σ²) <span class="op">^</span> <span class="fl">2</span>) <span class="op">*</span> <span class="fu">dot</span>(obs.storage_q, obs.storage_q)</span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>    n</span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
 <pre><code>logl! (generic function with 1 method)</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>?BLAS.syrk!</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<pre><code>syrk!(uplo, trans, alpha, A, beta, C)</code></pre>
+<p>Rank-k update of the symmetric matrix <code>C</code> as <code>alpha*A*transpose(A) + beta*C</code> or <code>alpha*transpose(A)*A + beta*C</code> according to <a href="@ref%20stdlib-blas-trans"><code>trans</code></a>. Only the <a href="@ref%20stdlib-blas-uplo"><code>uplo</code></a> triangle of <code>C</code> is used. Returns <code>C</code>.</p>
 </div>
 </div>
 </section>
@@ -3316,7 +3344,8 @@ l\left(\beta, \Sigma, \sigma^{2}\right)
 &amp; =-\frac{n}{2} \log (2 \pi)-\frac{n}{2} \log  \sigma^{2}-\frac{1}{2} \log \left|I_{3}+z^{\prime} z \Sigma / \sigma^{2}\right|-\frac{1}{2 \sigma^{2}}(Y-x \beta)^{\prime}(Y-x \beta)+\frac{1}{2 \sigma^{2}}(Y-x \beta)^{\prime} z\left(\Sigma^{-1}+z^{\prime} z / \sigma^{2}\right)^{-1} z^{\prime}(Y-x \beta) \\
 &amp; =-\frac{n}{2} \log (2 \pi\sigma^{2}) -\frac{1}{2} \log \left|I_{3}+z^{\prime} z \Sigma / \sigma^{2}\right|-\frac{1}{2 \sigma^{2}}(Y-x \beta)^{\prime}(Y-x \beta)+\frac{1}{2 \sigma^{4}}\left(z^{\prime} Y-z^{\prime}x \beta\right)^{\prime}\left(\Sigma^{-1}+z^{\prime} z /\sigma^{2}\right)^{-1}\left(z^{\prime}Y-z^{\prime}x \beta\right)\\
 &amp; =-\frac{n}{2} \log (2 \pi\sigma^{2}) -\frac{1}{2} \log \left|I_{3}+z^{\prime} z \Sigma / \sigma^{2}\right|-\frac{1}{2 \sigma^{2}}(Y-x \beta)^{\prime}(Y-x \beta)+\frac{1}{2 \sigma^{4}}\left(z^{\prime} Y-z^{\prime}x \beta\right)^{\prime}\left(L^{\prime}L\right)^{-1}\left(z^{\prime}Y-z^{\prime}x \beta\right)\\
-&amp; =-\frac{n}{2} \log (2 \pi\sigma^{2}) -\frac{1}{2} \log \left|I_{3}+z^{\prime} z \Sigma / \sigma^{2}\right|-\frac{1}{2 \sigma^{2}}(Y-x \beta)^{\prime}(Y-x \beta)+\frac{1}{2 \sigma^{4}}\left|L^{-1}\left(z^{\prime} Y-z^{\prime}x \beta\right)\right|^2_2
+&amp; =-\frac{n}{2} \log (2 \pi\sigma^{2}) -\frac{1}{2} \log \left|I_{3}+z^{\prime} z \Sigma / \sigma^{2}\right|-\frac{1}{2 \sigma^{2}}(Y-x \beta)^{\prime}(Y-x \beta)+\frac{1}{2 \sigma^{4}}\left|L^{-1}\left(z^{\prime} Y-z^{\prime}x \beta\right)\right|^2_2\\
+&amp; =-\frac{n}{2} \log (2 \pi\sigma^{2}) - \log \left|L\right| - \log \left|\Sigma\right| -\frac{1}{2 \sigma^{2}}(Y-x \beta)^{\prime}(Y-x \beta)+\frac{1}{2 \sigma^{4}}\left|L^{-1}\left(z^{\prime} Y-z^{\prime}x \beta\right)\right|^2_2
 \end{aligned}
 \]</span></p>
 <p><strong>Hint</strong>: This function shouldn’t be very long. Mine, obeying 92-character rule, is 30 lines. If you find yourself writing very long code, you’re on the wrong track. Think about algorithm (flop count) first then use BLAS functions to reduce memory allocations.</p>
@@ -3324,93 +3353,93 @@ l\left(\beta, \Sigma, \sigma^{2}\right)
 <section id="q3-correctness-15-pts" class="level2" data-number="4">
 <h2 data-number="4" class="anchored" data-anchor-id="q3-correctness-15-pts"><span class="header-section-number">4</span> Q3 Correctness (15 pts)</h2>
 <p>Compare your result (both accuracy and timing) to the <a href="https://juliastats.org/Distributions.jl/stable/multivariate/#Distributions.AbstractMvNormal">Distributions.jl</a> package using following data.</p>
-<div class="cell" data-tags="[]" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="bu">Random</span>.<span class="fu">seed!</span>(<span class="fl">257</span>)</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co"># dimension</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>n, p, q <span class="op">=</span> <span class="fl">2000</span>, <span class="fl">5</span>, <span class="fl">3</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co"># predictors</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>X  <span class="op">=</span> [<span class="fu">ones</span>(n) <span class="fu">randn</span>(n, p <span class="op">-</span> <span class="fl">1</span>)]</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>Z  <span class="op">=</span> [<span class="fu">ones</span>(n) <span class="fu">randn</span>(n, q <span class="op">-</span> <span class="fl">1</span>)]</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co"># parameter values</span></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>β  <span class="op">=</span> [<span class="fl">2.0</span>; <span class="op">-</span><span class="fl">1.0</span>; <span class="fu">rand</span>(p <span class="op">-</span> <span class="fl">2</span>)]</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>σ² <span class="op">=</span> <span class="fl">1.5</span></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>Σ  <span class="op">=</span> <span class="fu">fill</span>(<span class="fl">0.1</span>, q, q) <span class="op">+</span> <span class="fl">0.9</span>I</span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="co"># generate y</span></span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>y  <span class="op">=</span> X <span class="op">*</span> β <span class="op">+</span> Z <span class="op">*</span> <span class="fu">rand</span>(<span class="fu">MvNormal</span>(Σ)) <span class="op">+</span> <span class="fu">sqrt</span>(σ²) <span class="op">*</span> <span class="fu">randn</span>(n)</span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="co"># form an LmmObs object</span></span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>obs <span class="op">=</span> <span class="fu">LmmObs</span>(y, X, Z)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="6">
-<pre><code>LmmObs{Float64}([-1.450910909560209, 1.5185224894450862, 5.265021705624027, 4.485272594164557, 0.694969966642933, 1.7723256696372405, 1.1065838446466518, 3.729166811829607, 4.288899999400642, 2.8241842645202406  …  4.058027151891634, 1.0909724390970443, 0.026692243086209766, -0.8927757653299448, 6.94725248926293, 3.5193020855673436, 4.914007299083773, 2.1610206566690797, 1.857389542694909, 6.513818951020866], [1.0 0.6790633442371218 … 0.5400611947971554 -0.632040682052606; 1.0 1.2456776800889142 … -0.4818455756130373 0.6467830314674976; … ; 1.0 0.0733124748775436 … 0.6125080259511859 0.4181258283983667; 1.0 -1.336609049786048 … -0.18567490803712938 1.0745977099307227], [1.0 -1.0193326822839996 -0.15855601254314888; 1.0 1.7462667837699666 -0.4584376230657152; … ; 1.0 1.4843185594903878 0.42458303115266854; 1.0 0.3791714762820068 0.25150666970865837], [2.2508293685e-314, 2.2508293843e-314, 2.7390417515e-314, 0.0, 2.2499453863e-314], [2.166650875e-314, 2.166630365e-314, 0.0], [2000.0 -16.870943820386742 … -4.678756487678475 -33.013941932083; -16.870943820386742 1972.1480562704003 … 42.18373658967015 -18.84275280240305; … ; -4.678756487678475 42.18373658967015 … 1962.0317062119739 31.94767484234441; -33.013941932083 -18.84275280240305 … 31.94767484234441 1952.6108146037132], [2000.0 -16.870943820386742 … -4.678756487678475 -33.013941932083; 3.207786785008361 51.53509357013415 … -5.599636592147186 -25.64263779027382; 5.886499963119173 -108.8221415845363 … 84.16510226928119 -24.939700580608623], [2000.0 3.207786785008361 5.886499963119173; 3.207786785008361 1988.894096853326 -57.31891154469458; 5.886499963119173 -57.31891154469458 2009.4519396527112], [4209.066417097505, -447.626646909811, -2763.9856125358615], [4209.066417097505, -1849.2613478849603, 1339.123019322386, 396.4337131159357, 1659.0630888170558], [2.237692835e-314, 2.53184141e-314, 2.53184141e-314], 20378.320552515157, [2.251006228e-314 0.0 2.251006149e-314; 0.0 2.53249032e-314 0.0; 2.532453174e-314 0.0 1.27e-321])</code></pre>
+<div class="cell" data-tags="[]" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="bu">Random</span>.<span class="fu">seed!</span>(<span class="fl">257</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co"># dimension</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>n, p, q <span class="op">=</span> <span class="fl">2000</span>, <span class="fl">5</span>, <span class="fl">3</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co"># predictors</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>X  <span class="op">=</span> [<span class="fu">ones</span>(n) <span class="fu">randn</span>(n, p <span class="op">-</span> <span class="fl">1</span>)]</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>Z  <span class="op">=</span> [<span class="fu">ones</span>(n) <span class="fu">randn</span>(n, q <span class="op">-</span> <span class="fl">1</span>)]</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="co"># parameter values</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>β  <span class="op">=</span> [<span class="fl">2.0</span>; <span class="op">-</span><span class="fl">1.0</span>; <span class="fu">rand</span>(p <span class="op">-</span> <span class="fl">2</span>)]</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>σ² <span class="op">=</span> <span class="fl">1.5</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>Σ  <span class="op">=</span> <span class="fu">fill</span>(<span class="fl">0.1</span>, q, q) <span class="op">+</span> <span class="fl">0.9</span>I</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a><span class="co"># generate y</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>y  <span class="op">=</span> X <span class="op">*</span> β <span class="op">+</span> Z <span class="op">*</span> <span class="fu">rand</span>(<span class="fu">MvNormal</span>(Σ)) <span class="op">+</span> <span class="fu">sqrt</span>(σ²) <span class="op">*</span> <span class="fu">randn</span>(n)</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a><span class="co"># form an LmmObs object</span></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>obs <span class="op">=</span> <span class="fu">LmmObs</span>(y, X, Z)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<pre><code>LmmObs{Float64}([-1.450910909560209, 1.5185224894450862, 5.265021705624027, 4.485272594164557, 0.694969966642933, 1.7723256696372405, 1.1065838446466518, 3.729166811829607, 4.288899999400642, 2.8241842645202406  …  4.058027151891634, 1.0909724390970443, 0.026692243086209766, -0.8927757653299448, 6.94725248926293, 3.5193020855673436, 4.914007299083773, 2.1610206566690797, 1.857389542694909, 6.513818951020866], [1.0 0.6790633442371218 … 0.5400611947971554 -0.632040682052606; 1.0 1.2456776800889142 … -0.4818455756130373 0.6467830314674976; … ; 1.0 0.0733124748775436 … 0.6125080259511859 0.4181258283983667; 1.0 -1.336609049786048 … -0.18567490803712938 1.0745977099307227], [1.0 -1.0193326822839996 -0.15855601254314888; 1.0 1.7462667837699666 -0.4584376230657152; … ; 1.0 1.4843185594903878 0.42458303115266854; 1.0 0.3791714762820068 0.25150666970865837], [2.518679533e-314, 2.5186795407e-314, 2.5186795486e-314, 2.5186795565e-314, 2.1616765745e-314], [2.121995791e-314, 2.1219957915e-314, 2.240918649e-314], [2000.0 -16.870943820386742 … -4.678756487678475 -33.013941932083; -16.870943820386742 1972.1480562704003 … 42.18373658967015 -18.84275280240305; … ; -4.678756487678475 42.18373658967015 … 1962.0317062119739 31.94767484234441; -33.013941932083 -18.84275280240305 … 31.94767484234441 1952.6108146037132], [2000.0 -16.870943820386742 … -4.678756487678475 -33.013941932083; 3.207786785008361 51.53509357013415 … -5.599636592147186 -25.64263779027382; 5.886499963119173 -108.8221415845363 … 84.16510226928119 -24.939700580608623], [2000.0 3.207786785008361 5.886499963119173; 3.207786785008361 1988.894096853326 -57.31891154469458; 5.886499963119173 -57.31891154469458 2009.4519396527112], [4209.066417097505, -447.626646909811, -2763.9856125358615], [4209.066417097505, -1849.2613478849603, 1339.123019322386, 396.4337131159357, 1659.0630888170558], [2.770785414e-314, 0.0, 2.161683689e-314], 20378.320552515157, [2.5204636157e-314 0.0 2.3493462085e-314; 0.0 2.3511167105e-314 0.0; 2.2503838557e-314 0.0 1.27e-321])</code></pre>
 </div>
 </div>
 <p>This is the standard way to evaluate log-density of a multivariate normal, using the Distributions.jl package. Let’s evaluate the log-likelihood of this datum.</p>
-<div class="cell" data-tags="[]" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>μ  <span class="op">=</span> X <span class="op">*</span> β</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>Ω  <span class="op">=</span> Z <span class="op">*</span> Σ <span class="op">*</span> <span class="fu">transpose</span>(Z) <span class="op">+</span>  σ² <span class="op">*</span> I</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>mvn <span class="op">=</span> <span class="fu">MvNormal</span>(μ, <span class="fu">Symmetric</span>(Ω)) <span class="co"># MVN(μ, Σ)</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">logpdf</span>(mvn, y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="7">
+<div class="cell" data-tags="[]" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>μ  <span class="op">=</span> X <span class="op">*</span> β</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>Ω  <span class="op">=</span> Z <span class="op">*</span> Σ <span class="op">*</span> <span class="fu">transpose</span>(Z) <span class="op">+</span>  σ² <span class="op">*</span> I</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>mvn <span class="op">=</span> <span class="fu">MvNormal</span>(μ, <span class="fu">Symmetric</span>(Ω)) <span class="co"># MVN(μ, Σ)</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="fu">logpdf</span>(mvn, y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
 <pre><code>-3256.179335805832</code></pre>
 </div>
 </div>
 <p>Check that your answer matches that from Distributions.jl</p>
-<div class="cell" data-tags="[]" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>L <span class="op">=</span> <span class="fu">Matrix</span>(<span class="fu">cholesky</span>(Σ).L)</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>L <span class="op">=</span> <span class="fu">inv</span>(L)</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">logl!</span>(obs, β, L, σ²)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="8">
+<div class="cell" data-tags="[]" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>L <span class="op">=</span> <span class="fu">Matrix</span>(<span class="fu">cholesky</span>(Σ).L)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>L <span class="op">=</span> <span class="fu">inv</span>(L)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="fu">logl!</span>(obs, β, L, σ²)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="11">
 <pre><code>-3256.179335805833</code></pre>
 </div>
 </div>
 <p><strong>You will lose all 15 + 30 + 30 = 75 points</strong> if the following statement throws <code>AssertionError</code>.</p>
-<div class="cell" data-tags="[]" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@assert</span> <span class="fu">logl!</span>(obs, β, L, σ²) <span class="op">≈</span> <span class="fu">logpdf</span>(mvn, y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-tags="[]" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@assert</span> <span class="fu">logl!</span>(obs, β, L, σ²) <span class="op">≈</span> <span class="fu">logpdf</span>(mvn, y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="q4-efficiency-30-pts" class="level2" data-number="5">
 <h2 data-number="5" class="anchored" data-anchor-id="q4-efficiency-30-pts"><span class="header-section-number">5</span> Q4 Efficiency (30 pts)</h2>
 <p>Benchmarking your code and compare to the Distributions.jl function <code>logpdf</code>.</p>
-<div class="cell" data-tags="[]" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># benchmark the `logpdf` function in Distribution.jl</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>bm1 <span class="op">=</span> <span class="pp">@benchmark</span> <span class="fu">logpdf</span>(<span class="op">$</span>mvn, <span class="op">$</span>y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="10">
+<div class="cell" data-tags="[]" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># benchmark the `logpdf` function in Distribution.jl</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>bm1 <span class="op">=</span> <span class="pp">@benchmark</span> <span class="fu">logpdf</span>(<span class="op">$</span>mvn, <span class="op">$</span>y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="13">
 <div class="ansi-escaped-output">
-<pre>BenchmarkTools.Trial: 9536 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">425.917 μs</span> … <span class="ansi-magenta-fg"> 6.073 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 86.41%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">507.250 μs              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">520.849 μs</span> ± <span class="ansi-green-fg">77.646 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.11% ±  0.88%
-            ▃▆▇██<span class="ansi-blue-fg">█</span>▇▇<span class="ansi-green-fg">▆</span>▅▄▄▃▃▃▂▂▂▁▂▁▁▁▁▁       ▁                  ▃
-  ▃▃▁▄▁▄▅▃▄▆█████<span class="ansi-blue-fg">█</span>██<span class="ansi-green-fg">█</span>█████████████████████▇▇█▇▇█▇█▆▆▇▆▇▇▄▆▆▆▅▆ █
-  426 μs<span class="ansi-bright-black-fg">        </span><span class="ansi-bright-black-fg">Histogram: </span><span class="ansi-bright-black-fg ansi-bold">log(</span><span class="ansi-bright-black-fg">frequency</span><span class="ansi-bright-black-fg ansi-bold">)</span><span class="ansi-bright-black-fg"> by time</span>       742 μs <span class="ansi-bold">&lt;</span>
+<pre>BenchmarkTools.Trial: 9759 samples with 1 evaluation.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">420.500 μs</span> … <span class="ansi-magenta-fg">  9.503 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 91.01%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">492.542 μs               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">508.493 μs</span> ± <span class="ansi-green-fg">100.310 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.17% ±  0.92%
+             ▁▅██<span class="ansi-blue-fg">▇</span>▆▅▅<span class="ansi-green-fg">▄</span>▄▄▃▃▃▃▃▂▂▂▁▁▁▁                            ▂
+  ▃▁▄▄▄▄▁▅▁▃▅████<span class="ansi-blue-fg">█</span>███<span class="ansi-green-fg">█</span>█████████████████████▇█▇▇▇▇▇▆▇▇▇▆▇▆▆▇▅▅▆▆ █
+  420 μs<span class="ansi-bright-black-fg">        </span><span class="ansi-bright-black-fg">Histogram: </span><span class="ansi-bright-black-fg ansi-bold">log(</span><span class="ansi-bright-black-fg">frequency</span><span class="ansi-bright-black-fg ansi-bold">)</span><span class="ansi-bright-black-fg"> by time</span>        708 μs <span class="ansi-bold">&lt;</span>
  Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">31.52 KiB</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">3</span>.</pre>
 </div>
 </div>
 </div>
-<div class="cell" data-tags="[]" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># benchmark your implementation</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>bm2 <span class="op">=</span> <span class="pp">@benchmark</span> <span class="fu">logl!</span>(<span class="op">$</span>obs, <span class="op">$</span>β, <span class="op">$</span>L, <span class="op">$</span>σ²)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="11">
+<div class="cell" data-tags="[]" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># benchmark your implementation</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>bm2 <span class="op">=</span> <span class="pp">@benchmark</span> <span class="fu">logl!</span>(<span class="op">$</span>obs, <span class="op">$</span>β, <span class="op">$</span>L, <span class="op">$</span>σ²)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="14">
 <div class="ansi-escaped-output">
-<pre>BenchmarkTools.Trial: 10000 samples with 194 evaluations.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">481.098 ns</span> … <span class="ansi-magenta-fg"> 21.725 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 96.92%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">514.175 ns               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">535.596 ns</span> ± <span class="ansi-green-fg">502.238 ns</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>2.28% ±  2.37%
-     ▃██▃  ▂<span class="ansi-blue-fg">▃</span>▂    <span class="ansi-green-fg"> </span>                                              
-  ▁▂▅████▇▇█<span class="ansi-blue-fg">█</span>█▇▇▆▆<span class="ansi-green-fg">▅</span>▄▄▃▃▃▂▂▂▂▂▂▂▂▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▃
-  481 ns<span class="ansi-bright-black-fg">           Histogram: frequency by time</span>          683 ns <span class="ansi-bold">&lt;</span>
- Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">304 bytes</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">4</span>.</pre>
+<pre>BenchmarkTools.Trial: 10000 samples with 207 evaluations.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">365.338 ns</span> … <span class="ansi-magenta-fg">971.014 ns</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">380.435 ns               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">392.335 ns</span> ± <span class="ansi-green-fg"> 35.648 ns</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
+    ▄██<span class="ansi-blue-fg">▇</span>▄▃<span class="ansi-green-fg">▄</span>▃▂▁  ▁▁▁   ▁▁                                        ▂
+  ▅▇███<span class="ansi-blue-fg">█</span>██<span class="ansi-green-fg">█</span>█████████▇████▇▇█▇▇▇██▇█▇▇███▇▆▆▆▆▆▆▅▆▄▅▃▅▄▄▄▅▆▅▅▅▄▅ █
+  365 ns<span class="ansi-bright-black-fg">        </span><span class="ansi-bright-black-fg">Histogram: </span><span class="ansi-bright-black-fg ansi-bold">log(</span><span class="ansi-bright-black-fg">frequency</span><span class="ansi-bright-black-fg ansi-bold">)</span><span class="ansi-bright-black-fg"> by time</span>        563 ns <span class="ansi-bold">&lt;</span>
+ Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">0 bytes</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">0</span>.</pre>
 </div>
 </div>
 </div>
 <p>The points you will get is <span class="math display">\[
 \frac{x}{1000} \times 30,
 \]</span> where <span class="math inline">\(x\)</span> is the speedup of your program against the standard method.</p>
-<div class="cell" data-tags="[]" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># this is the points you&#39;ll get</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">clamp</span>(<span class="fu">median</span>(bm1).time <span class="op">/</span> <span class="fu">median</span>(bm2).time <span class="op">/</span> <span class="fl">1000</span> <span class="op">*</span> <span class="fl">30</span>, <span class="fl">0</span>, <span class="fl">30</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="12">
-<pre><code>29.595939849624063</code></pre>
+<div class="cell" data-tags="[]" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># this is the points you&#39;ll get</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">clamp</span>(<span class="fu">median</span>(bm1).time <span class="op">/</span> <span class="fu">median</span>(bm2).time <span class="op">/</span> <span class="fl">1000</span> <span class="op">*</span> <span class="fl">30</span>, <span class="fl">0</span>, <span class="fl">30</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="15">
+<pre><code>30.0</code></pre>
 </div>
 </div>
 <p><strong>Hint</strong>: Apparently I am using 1000 as denominator because I expect your code to be at least <span class="math inline">\(1000 \times\)</span> faster than the standard method.</p>
@@ -3418,10 +3447,10 @@ l\left(\beta, \Sigma, \sigma^{2}\right)
 <section id="q5-memory-30-pts" class="level2" data-number="6">
 <h2 data-number="6" class="anchored" data-anchor-id="q5-memory-30-pts"><span class="header-section-number">6</span> Q5 Memory (30 pts)</h2>
 <p>You want to avoid memory allocation in the “hot” function <code>logl!</code>. You will lose 1 point for each <code>1 KiB = 1024 bytes</code> memory allocation. In other words, the points you get for this question is</p>
-<div class="cell" data-tags="[]" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">clamp</span>(<span class="fl">30</span> <span class="op">-</span> <span class="fu">median</span>(bm2).memory <span class="op">/</span> <span class="fl">1024</span>, <span class="fl">0</span>, <span class="fl">30</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="13">
-<pre><code>29.703125</code></pre>
+<div class="cell" data-tags="[]" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">clamp</span>(<span class="fl">30</span> <span class="op">-</span> <span class="fu">median</span>(bm2).memory <span class="op">/</span> <span class="fl">1024</span>, <span class="fl">0</span>, <span class="fl">30</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="16">
+<pre><code>30.0</code></pre>
 </div>
 </div>
 <p><strong>Hint</strong>: I am able to reduce the memory allocation to 0 bytes.</p>
