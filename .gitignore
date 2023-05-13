@@ -10,7 +10,7 @@
 /figure
 # Session Data files
 .RData
-
+*csv.gz
 # User-specific files
 .Ruserdata
 
