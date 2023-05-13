@@ -3437,7 +3437,7 @@ Environment:
 </ul>
 <div class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>index <span class="op">=</span> <span class="fu">Vector</span>(<span class="fl">1</span> <span class="op">:</span> <span class="fu">size</span>(A, <span class="fl">2</span>))</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>in_vec<span class="op">=</span> <span class="fu">Dict</span>(index <span class="op">.=&gt;</span> <span class="fu">vec</span>(in_degrees))</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>in_vec <span class="op">=</span> <span class="fu">Dict</span>(index <span class="op">.=&gt;</span> <span class="fu">vec</span>(in_degrees))</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="fu">first</span>(<span class="fu">sort</span>(in_vec, byvalue <span class="op">=</span> <span class="cn">true</span>, rev <span class="op">=</span> <span class="cn">true</span>), <span class="fl">20</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="9">
 <pre><code>20-element Vector{Pair{Int64, Int64}}:
@@ -3504,7 +3504,7 @@ Environment:
 <li>top 20 pages with the largest out-degrees</li>
 </ul>
 <div class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>out_vec<span class="op">=</span> <span class="fu">Dict</span>(index <span class="op">.=&gt;</span> out_degrees)</span>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>out_vec <span class="op">=</span> <span class="fu">Dict</span>(index <span class="op">.=&gt;</span> out_degrees)</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">first</span>(<span class="fu">sort</span>(out_vec, byvalue <span class="op">=</span> <span class="cn">true</span>, rev <span class="op">=</span> <span class="cn">true</span>), <span class="fl">20</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="11">
 <pre><code>20-element Vector{Pair{Int64, Int64}}:
@@ -3646,7 +3646,7 @@ Environment:
 <span id="cb23-45"><a href="#cb23-45" aria-hidden="true" tabindex="-1"></a><span class="co"># overwrite `out` by `(I - Pt) * v`</span></span>
 <span id="cb23-46"><a href="#cb23-46" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="bu">LinearAlgebra</span>.<span class="fu">mul!</span>(</span>
 <span id="cb23-47"><a href="#cb23-47" aria-hidden="true" tabindex="-1"></a>        out <span class="op">::</span><span class="dt"> Vector{T}</span>, </span>
-<span id="cb23-48"><a href="#cb23-48" aria-hidden="true" tabindex="-1"></a>        M   <span class="op">::</span><span class="dt"> PageRankImPt{&lt;:Number, &lt;:Integer, T}</span>, </span>
+<span id="cb23-48"><a href="#cb23-48" aria-hidden="true" tabindex="-1"></a>        M   <span class="op">::</span><span class="dt"> PageRankImPt{&lt;: Number, &lt;: Integer, T}</span>, </span>
 <span id="cb23-49"><a href="#cb23-49" aria-hidden="true" tabindex="-1"></a>        v   <span class="op">::</span><span class="dt"> Vector{T}</span></span>
 <span id="cb23-50"><a href="#cb23-50" aria-hidden="true" tabindex="-1"></a>        ) <span class="kw">where</span> T <span class="op">&lt;:</span><span class="dt"> AbstractFloat</span></span>
 <span id="cb23-51"><a href="#cb23-51" aria-hidden="true" tabindex="-1"></a>    <span class="co">#AtD*v</span></span>
@@ -3663,7 +3663,7 @@ Environment:
 <span id="cb23-62"><a href="#cb23-62" aria-hidden="true" tabindex="-1"></a>        out <span class="op">::</span><span class="dt"> Vector{T}</span>, </span>
 <span id="cb23-63"><a href="#cb23-63" aria-hidden="true" tabindex="-1"></a>        Mt  <span class="op">::</span><span class="dt"> Transpose{T, PageRankImPt{TA, IA, T}}</span>, </span>
 <span id="cb23-64"><a href="#cb23-64" aria-hidden="true" tabindex="-1"></a>        v   <span class="op">::</span><span class="dt"> Vector{T}</span></span>
-<span id="cb23-65"><a href="#cb23-65" aria-hidden="true" tabindex="-1"></a>        ) <span class="kw">where</span> {TA<span class="op">&lt;:</span><span class="dt">Number</span>, IA<span class="op">&lt;:</span><span class="dt">Integer</span>, T <span class="op">&lt;:</span><span class="dt"> AbstractFloat</span>}</span>
+<span id="cb23-65"><a href="#cb23-65" aria-hidden="true" tabindex="-1"></a>        ) <span class="kw">where</span> {TA <span class="op">&lt;:</span><span class="dt"> Number</span>, IA <span class="op">&lt;:</span><span class="dt"> Integer</span>, T <span class="op">&lt;:</span><span class="dt"> AbstractFloat</span>}</span>
 <span id="cb23-66"><a href="#cb23-66" aria-hidden="true" tabindex="-1"></a>    M <span class="op">=</span> Mt.parent</span>
 <span id="cb23-67"><a href="#cb23-67" aria-hidden="true" tabindex="-1"></a>    <span class="co">#DAv</span></span>
 <span id="cb23-68"><a href="#cb23-68" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mul!</span>(out, M.da, v)</span>
@@ -3741,12 +3741,12 @@ Environment:
 <div class="cell-output cell-output-display" data-execution_count="17">
 <div class="ansi-escaped-output">
 <pre>BenchmarkTools.Trial: 409 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">10.693 ms</span> … <span class="ansi-magenta-fg"> 17.213 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">11.781 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">11.934 ms</span> ± <span class="ansi-green-fg">793.646 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
-       ▂ ▃▃▆▄▇▅ ▂█ ▄<span class="ansi-blue-fg">▅</span>▂▃<span class="ansi-green-fg">▂</span>▇   ▃                                   
-  ▃▃▃▄▅█▇███████████<span class="ansi-blue-fg">█</span>██<span class="ansi-green-fg">█</span>██▄██▅▆▅▅▆█▄▆▅▇▄▅▃▃▅▄▃▁▁▁▃▁▃▃▁▃▁▃▃▃▁▃▃ ▅
-  10.7 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>         14.3 ms <span class="ansi-bold">&lt;</span>
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">10.783 ms</span> … <span class="ansi-magenta-fg">20.719 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">11.624 ms              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">11.924 ms</span> ± <span class="ansi-green-fg"> 1.118 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
+     ▄▆▇██▃▂<span class="ansi-blue-fg"> </span>▂▃<span class="ansi-green-fg">▁</span>                                               
+  ▃▇▇███████<span class="ansi-blue-fg">▆</span>██<span class="ansi-green-fg">█</span>█▇▆██▆▅▃▄▂▄▄▃▂▂▂▃▃▁▃▃▂▁▃▁▁▂▁▁▁▁▂▃▁▃▂▁▁▂▁▁▁▁▁▃ ▄
+  10.8 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>          16 ms <span class="ansi-bold">&lt;</span>
  Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">0 bytes</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">0</span>.</pre>
 </div>
 </div>
@@ -3755,13 +3755,13 @@ Environment:
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>bm_mtv <span class="op">=</span> <span class="pp">@benchmark</span> <span class="fu">mul!</span>(<span class="op">$</span>out, <span class="op">$</span>(<span class="fu">transpose</span>(M)), <span class="op">$</span>v) setup<span class="op">=</span>(<span class="fu">fill!</span>(out, <span class="fl">0</span>); <span class="fu">fill!</span>(v, <span class="fl">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="18">
 <div class="ansi-escaped-output">
-<pre>BenchmarkTools.Trial: 364 samples with 1 evaluation.
- Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">12.368 ms</span> … <span class="ansi-magenta-fg"> 16.170 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">13.302 ms               </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
- Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">13.453 ms</span> ± <span class="ansi-green-fg">677.903 μs</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
-        ▅▅▃▄▇██▃  ▁<span class="ansi-blue-fg">▁</span> ▃<span class="ansi-green-fg">▁</span> ▃ ▂ ▁                                   
-  ▃▁▃▅▅██████████▇█<span class="ansi-blue-fg">█</span>▆█<span class="ansi-green-fg">█</span>▆███▅█▆▇▇▆▆▄▅▅▅▅▄▃▃▄▃▄▃▁▁▃▄▁▃▃▁▁▃▁▃▁▃▁▃ ▄
-  12.4 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>         15.7 ms <span class="ansi-bold">&lt;</span>
+<pre>BenchmarkTools.Trial: 353 samples with 1 evaluation.
+ Range <span class="ansi-bright-black-fg">(</span><span class="ansi-cyan-fg ansi-bold">min</span> … <span class="ansi-magenta-fg">max</span><span class="ansi-bright-black-fg">):  </span><span class="ansi-cyan-fg ansi-bold">12.310 ms</span> … <span class="ansi-magenta-fg">24.564 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>min … max<span class="ansi-bright-black-fg">): </span>0.00% … 0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-blue-fg ansi-bold">median</span><span class="ansi-bright-black-fg">):     </span><span class="ansi-blue-fg ansi-bold">13.642 ms              </span><span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>median<span class="ansi-bright-black-fg">):    </span>0.00%
+ Time  <span class="ansi-bright-black-fg">(</span><span class="ansi-green-fg ansi-bold">mean</span> ± <span class="ansi-green-fg">σ</span><span class="ansi-bright-black-fg">):   </span><span class="ansi-green-fg ansi-bold">13.887 ms</span> ± <span class="ansi-green-fg"> 1.179 ms</span>  <span class="ansi-bright-black-fg">┊</span> GC <span class="ansi-bright-black-fg">(</span>mean ± σ<span class="ansi-bright-black-fg">):  </span>0.00% ± 0.00%
+     ▃▂▄▅▅▅█▄▂▇▃<span class="ansi-blue-fg">▁</span>▄<span class="ansi-green-fg">▄</span> ▁▃ ▂▁ ▁                                    
+  ▄▄▅███████████<span class="ansi-blue-fg">█</span>█<span class="ansi-green-fg">█</span>▇██▆██▆██▅▆▄▄▄▃▁▅▅▃▃▃▁▁▃▃▁▁▁▁▃▃▁▃▁▁▁▁▁▁▁▃▃ ▄
+  12.3 ms<span class="ansi-bright-black-fg">         Histogram: frequency by time</span>          18 ms <span class="ansi-bold">&lt;</span>
  Memory estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">0 bytes</span>, allocs estimate<span class="ansi-bright-black-fg">: </span><span class="ansi-yellow-fg">0</span>.</pre>
 </div>
 </div>
@@ -3796,7 +3796,7 @@ Environment:
 <div class="cell-output cell-output-display" data-execution_count="20">
 <pre><code>(value = ([3.3783428221834835e-5, 2.07101553924515e-6, 3.6630659852312323e-6, 7.527510785590242e-7, 8.63328599714718e-7, 1.7694182527349081e-6, 2.431230382908028e-7, 6.368417180736811e-7, 4.7449737037419905e-7, 2.689548611092006e-7  …  3.1679469739726456e-6, 9.72688041021556e-7, 6.588614478531561e-7, 7.737011774701988e-7, 2.431230382908028e-7, 1.6219204214219928e-6, 3.912130060624946e-7, 2.431230382908028e-7, 7.296033831312859e-6, 6.330939996667853e-7], ConvergenceInfo: one converged value after 3 iterations and 72 applications of the linear map;
 norms of residuals are given by (7.821170354171959e-13,).
-), time = 2.2131578, bytes = 1008962679, gctime = 0.0427275, gcstats = Base.GC_Diff(1008962679, 137, 0, 79420, 3, 142, 42727500, 3, 0))</code></pre>
+), time = 2.1789066, bytes = 1008962679, gctime = 0.0426679, gcstats = Base.GC_Diff(1008962679, 137, 0, 79420, 3, 142, 42667900, 3, 0))</code></pre>
 </div>
 </div>
 <p>Check correctness. <strong>You will lose all 20 points if the following statement throws <code>AssertError</code>.</strong></p>
@@ -3823,7 +3823,7 @@ norms of residuals are given by (7.821170354171959e-13,).
 <div class="cell-output cell-output-display" data-execution_count="23">
 <pre><code>(value = (ComplexF64[9.949332144482505e-15 + 0.0im], Vector{ComplexF64}[[0.005635826953806724 + 0.0im, 0.00034549143807825517 + 0.0im, 0.0006110808494124441 + 0.0im, 0.00012557561626033316 + 0.0im, 0.0001440224053280124 + 0.0im, 0.00029517830503980765 + 0.0im, 4.055832828677108e-5 + 0.0im, 0.00010623935784850565 + 0.0im, 7.915671116193869e-5 + 0.0im, 4.486765066724069e-5 + 0.0im  …  0.000528483989979645 + 0.0im, 0.000162265991479869 + 0.0im, 0.0001099127383760812 + 0.0im, 0.000129070558557498 + 0.0im, 4.055832828677108e-5 + 0.0im, 0.0002705723874320063 + 0.0im, 6.526302748332294e-5 + 0.0im, 4.055832828677108e-5 + 0.0im, 0.001217140660132618 + 0.0im, 0.00010561415510697305 + 0.0im]], ConvergenceInfo: one converged value after 7 iterations and 99 applications of the linear map;
 norms of residuals are given by (9.574326983432913e-14,).
-), time = 3.6809129, bytes = 1599180685, gctime = 0.2528974, gcstats = Base.GC_Diff(1599180685, 213, 0, 414106, 317, 369, 252897400, 3, 1))</code></pre>
+), time = 3.683697, bytes = 1599180525, gctime = 0.2581879, gcstats = Base.GC_Diff(1599180525, 213, 0, 414101, 317, 369, 258187900, 3, 1))</code></pre>
 </div>
 </div>
 <p>Check correctness. <strong>You will lose all 20 points if the following statement throws <code>AssertError</code>.</strong></p>
@@ -3849,7 +3849,7 @@ norms of residuals are given by (9.574326983432913e-14,).
 <h2 data-number="1.3" class="anchored" data-anchor-id="q6-5-pts-results"><span class="header-section-number">1.3</span> Q6 (5 pts) Results</h2>
 <p>List the top 20 pages you found and their corresponding PageRank score. Do they match the top 20 pages ranked according to in-degrees?</p>
 <div class="cell" data-execution_count="27">
-<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>score_arnoldi<span class="op">=</span> <span class="fu">Dict</span>(index <span class="op">.=&gt;</span> x_arnoldi)</span>
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>score_arnoldi <span class="op">=</span> <span class="fu">Dict</span>(index <span class="op">.=&gt;</span> x_arnoldi)</span>
 <span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="fu">first</span>(<span class="fu">sort</span>(score_arnoldi, byvalue <span class="op">=</span> <span class="cn">true</span>, rev <span class="op">=</span> <span class="cn">true</span>), <span class="fl">20</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="27">
 <pre><code>20-element Vector{Pair{Int64, Float64}}:
@@ -3876,7 +3876,7 @@ norms of residuals are given by (9.574326983432913e-14,).
 </div>
 </div>
 <div class="cell" data-execution_count="28">
-<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>score_gmres<span class="op">=</span> <span class="fu">Dict</span>(index <span class="op">.=&gt;</span> x_gmres)</span>
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>score_gmres <span class="op">=</span> <span class="fu">Dict</span>(index <span class="op">.=&gt;</span> x_gmres)</span>
 <span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="fu">first</span>(<span class="fu">sort</span>(score_gmres, byvalue <span class="op">=</span> <span class="cn">true</span>, rev <span class="op">=</span> <span class="cn">true</span>), <span class="fl">20</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="28">
 <pre><code>20-element Vector{Pair{Int64, Float64}}:
