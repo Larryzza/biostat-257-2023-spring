@@ -1,5 +1,5 @@
 
-
+*.pdf
 # project file
 *.Rproj
 .ipynb_checkpoints
